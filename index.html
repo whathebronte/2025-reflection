@@ -39,13 +39,6 @@
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
-        /* Mobile adjustment for button alignment */
-        .restart-button-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
         @keyframes fade-in {
             from { opacity: 0; transform: scale(0.9); }
             to { opacity: 1; transform: scale(1); }
@@ -91,22 +84,22 @@
             </div>
 
             <!-- Finished State View -->
-            <div id="finished-state" class="absolute inset-0 flex flex-col items-center justify-center text-center z-20 hidden restart-button-container">
+            <div id="finished-state" class="absolute inset-0 flex flex-col items-center justify-center text-center z-20 hidden">
                 <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-xs w-full animate-in">
-                    <!-- Icon placeholder -->
-                    <svg class="w-12 h-12 text-red-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.001 2.001M16 3l2.001 2.001M12 21h.01M12 17h.01M7 14h.01M17 14h.01M17 11h.01M12 14h.01M12 11h.01M7 11h.01M5 9h14M8 2h8a2 2 0 012 2v16a2 2 0 01-2 2H8a2 2 0 01-2-2V4a2 2 0 012-2z"></path>
-                    </svg>
-                    <h2 class="text-2xl font-black text-gray-900 mb-2">COMPLETE</h2>
+                    <!-- Removed Sparkles Icon. Added margin-top to keep layout similar. -->
+                    <h2 class="text-2xl font-black text-gray-900 mb-2 mt-4">COMPLETE</h2>
                     <p class="text-gray-500 mb-6 text-sm">You've reflected on everything.</p>
-                    <button id="restart-button" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2">
-                        <!-- Rotate icon placeholder -->
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356-2A8.001 8.001 0 0011 4.582l-1.58-1.58A10 10 0 1022 12h-2a8 8 0 11-13.376-5.836l1.24-.744.402-.24Z"></path></svg>
+                    <button id="restart-button" class="w-full py-3 bg-red-700 hover:bg-red-800 text-white font-bold rounded-lg transition-colors flex items-center justify-center">
                         Shuffle & Restart
                     </button>
                 </div>
             </div>
         </main>
+
+        <!-- New Subtle Restart Button -->
+        <button id="subtle-restart-button" class="mt-8 text-gray-400 hover:text-red-500 transition-colors hidden text-sm font-semibold tracking-wide opacity-80">
+            Restart Deck
+        </button>
     </div>
 
     <script>
@@ -140,6 +133,7 @@
         const tapArea = document.getElementById('card-tap-area');
         const finishedState = document.getElementById('finished-state');
         const restartButton = document.getElementById('restart-button');
+        const subtleRestartButton = document.getElementById('subtle-restart-button');
         
         // Face A Elements
         const titleContentA = document.getElementById('title-content-a');
@@ -172,6 +166,13 @@
             // Set for both faces as they are hidden/visible alternately
             deckStatusA.textContent = statusText;
             deckStatusB.textContent = statusText;
+
+            // Show subtle restart button only when active
+            if (gameStatus === 'active') {
+                subtleRestartButton.classList.remove('hidden');
+            } else {
+                subtleRestartButton.classList.add('hidden');
+            }
         };
 
         const drawNextQuestion = (isSettingA) => {
@@ -222,6 +223,7 @@
             tapArea.style.transform = 'scale(0.9)';
             tapArea.style.pointerEvents = 'none';
             finishedState.classList.remove('hidden');
+            subtleRestartButton.classList.add('hidden'); // Hide subtle button when finished screen is up
         };
 
         const handleCardTap = () => {
@@ -247,6 +249,7 @@
                 
                 // Show Question on Face B
                 renderCardContent(isFaceAVisible);
+                updateDeckStatus(); // Refresh status to show card count and subtle button
 
                 // Flip 180 deg (0 -> 180) to show Face B
                 rotationY = 180;
@@ -303,6 +306,7 @@
                 }, HALFWAY_POINT);
 
             }, HALFWAY_POINT);
+            updateDeckStatus(); // Update status/button visibility after flip
         };
 
         const restartDeck = () => {
@@ -320,7 +324,7 @@
             cardInner.style.transform = `rotateY(0deg)`;
 
             renderCardContent(true); // Reset Face A to Title
-            updateDeckStatus();
+            updateDeckStatus(); // Update status/button visibility
             
             setTimeout(() => {
                 isAnimating = false;
@@ -329,7 +333,8 @@
 
         // Event Listeners
         tapArea.addEventListener('click', handleCardTap);
-        restartButton.addEventListener('click', restartDeck);
+        restartButton.addEventListener('click', restartDeck); // Restart from finished screen
+        subtleRestartButton.addEventListener('click', restartDeck); // Subtle restart button
 
         // Initial Setup
         window.onload = () => {
